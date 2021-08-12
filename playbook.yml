@@ -1,0 +1,32 @@
+- hosts: target
+  become: true
+  tasks:
+
+  - name: Setup postfix using debconf
+    debconf:
+      name: postfix
+      question: "{{ item.question }}"
+      value: "{{ item.value }}"
+      vtype: "{{ item.vtype }}"
+    with_items:
+      - { question: postfix/main_mailer_type, value: "Internet Site", vtype: select }
+      - { question: postfix/mailname, value: "example.com", vtype: string }
+
+  - name: "install postfix"
+    apt:
+      name: 'postfix'
+
+  - name: Setup cron job
+    cron: 
+      name: "mailtest" 
+      minute: "*" 
+      hour: "*" 
+      day: "*"
+      job: "bash echo 'test'"
+
+  - name: Setup cron env
+    cron:
+      name: MAILTO
+      user: root
+      job: sample@gmail.com
+      env: true
